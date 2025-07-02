@@ -1,0 +1,4 @@
+[language]
+name = C
+extension = .C
+lexer = QsciLexerCPP

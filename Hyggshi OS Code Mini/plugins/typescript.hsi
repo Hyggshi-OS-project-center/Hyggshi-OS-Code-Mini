@@ -1,0 +1,4 @@
+[language]
+name = TypeScript
+extension = .ts
+lexer = QsciLexerJavaScript

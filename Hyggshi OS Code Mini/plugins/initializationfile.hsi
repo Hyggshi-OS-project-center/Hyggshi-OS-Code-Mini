@@ -1,0 +1,4 @@
+[language]
+name = INI
+extension = .ini
+lexer = QsciLexerPython

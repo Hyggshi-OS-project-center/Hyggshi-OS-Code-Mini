@@ -1,0 +1,409 @@
+import sys, os
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QFileDialog,
+    QTabWidget, QWidget, QVBoxLayout, QLineEdit, QShortcut,
+    QDockWidget, QTreeView, QFileSystemModel, QLabel, QMessageBox,
+    QScrollArea, QStatusBar, QMenu
+)
+from PyQt5.QtGui import QColor, QKeySequence, QPixmap, QWheelEvent, QMouseEvent, QTransform
+from PyQt5.QtCore import Qt, QTimer, QPoint
+from PyQt5.Qsci import (
+    QsciLexerPython, QsciLexerCPP, QsciLexerJavaScript,
+    QsciLexerHTML, QsciLexerJava, QsciLexerJSON,
+    QsciLexerLua, QsciScintilla, QsciScintillaBase, 
+)
+
+from PyQt5.QtWidgets import QSlider, QLabel, QHBoxLayout
+
+from PyQt5.QtGui import QIcon  # đặt đầu file nếu chưa có
+
+class EditorTab(QWidget):
+    def __init__(self, file_path=None):
+        super().__init__()
+        self.file_path = file_path
+        self.editor = QsciScintilla()
+        self.set_language_from_extension(file_path)
+
+        self.editor.setAutoIndent(True)
+        self.editor.setIndentationGuides(True)
+        self.editor.setMarginType(0, QsciScintilla.NumberMargin)
+        self.editor.setMarginWidth(0, "00000")
+        self.editor.setFolding(QsciScintilla.BoxedTreeFoldStyle)
+
+        self.set_dark_theme()
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.editor)
+
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText("Tìm kiếm...")
+        self.search_box.setStyleSheet("background-color: #333; color: white;")
+        self.search_box.hide()
+        layout.addWidget(self.search_box)
+
+        self.setLayout(layout)
+
+        self.last_search_text = ""
+        self.last_search_pos = (0, 0)
+
+        QShortcut(QKeySequence("Ctrl+F"), self, self.toggle_search_box)
+        QShortcut(QKeySequence("Esc"), self, lambda: self.search_box.hide())
+        QShortcut(QKeySequence("Return"), self.search_box, self.highlight_search)
+        QShortcut(QKeySequence("Shift+Return"), self.search_box, self.highlight_search_backward)
+
+        self.auto_save_timer = QTimer(self)
+        self.auto_save_timer.timeout.connect(self.auto_save_file)
+        self.auto_save_timer.start(10000)
+
+    def toggle_search_box(self):
+        self.search_box.setVisible(not self.search_box.isVisible())
+        if self.search_box.isVisible():
+            self.search_box.setFocus()
+
+    def highlight_search(self):
+        text = self.search_box.text()
+        if not text:
+            return
+        self.last_search_text = text
+        line, index = self.editor.getCursorPosition()
+        found = self.editor.findFirst(text, False, False, False, True, line, index)
+        if found:
+            self.last_search_pos = self.editor.getCursorPosition()
+        else:
+            self.editor.setCursorPosition(0, 0)
+
+    def highlight_search_backward(self):
+        text = self.search_box.text()
+        if not text:
+            return
+        self.last_search_text = text
+        line, index = self.editor.getCursorPosition()
+        found = self.editor.findFirst(text, False, False, False, True, line, index, True)
+        if found:
+            self.last_search_pos = self.editor.getCursorPosition()
+        else:
+            self.editor.setCursorPosition(self.editor.lines() - 1, 0)
+
+    def load_file(self, path):
+        try:
+            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                self.editor.setText(f.read())
+            self.file_path = path
+            self.set_language_from_extension(path)
+            return True
+        except Exception as e:
+            print("Error loading file:", e)
+            return False
+
+    def save_file(self):
+        if self.file_path:
+            try:
+                with open(self.file_path, 'w', encoding='utf-8') as f:
+                    f.write(self.editor.text())
+                return True
+            except Exception as e:
+                print("Error saving file:", e)
+        return False
+
+    def save_file_as(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save File As")
+        if file_path:
+            self.file_path = file_path
+            return self.save_file()
+        return False
+
+    def auto_save_file(self):
+        if self.file_path:
+            self.save_file()
+
+    def set_dark_theme(self):
+        self.editor.setCaretForegroundColor(QColor("#ffffff"))
+        self.editor.setPaper(QColor("#1e1e1e"))
+        self.editor.setColor(QColor("#d4d4d4"))
+        self.editor.setMarginsBackgroundColor(QColor("#1e1e1e"))
+        self.editor.setMarginsForegroundColor(QColor("#888888"))
+
+    def set_light_theme(self):
+        self.editor.setCaretForegroundColor(QColor("#000000"))
+        self.editor.setPaper(QColor("#ffffff"))
+        self.editor.setColor(QColor("#000000"))
+        self.editor.setMarginsBackgroundColor(QColor("#dddddd"))
+        self.editor.setMarginsForegroundColor(QColor("#555555"))
+
+    def set_language(self, lang):
+        if lang == "Python":
+            self.editor.setLexer(QsciLexerPython())
+        elif lang == "C++":
+            self.editor.setLexer(QsciLexerCPP())
+        elif lang == "JavaScript":
+            self.editor.setLexer(QsciLexerJavaScript())
+        elif lang == "HTML":
+            self.editor.setLexer(QsciLexerHTML())
+        else:
+            self.editor.setLexer(None)
+
+    def set_language_from_extension(self, path):
+        if not path:
+            self.set_language("Plain Text")
+            return
+        ext = os.path.splitext(path)[1].lower()
+        if ext == ".py":
+            self.set_language("Python")
+        elif ext in [".cpp", ".cxx", ".cc", ".h"]:
+            self.set_language("C++")
+        elif ext in [".js"]:
+            self.set_language("JavaScript")
+        elif ext in [".html", ".htm"]:
+            self.set_language("HTML")
+        else:
+            self.set_language("Plain Text")
+
+
+class ImageTab(QWidget):
+    def __init__(self, image_path, status_bar):
+        super().__init__()
+        self.image_path = image_path
+        self.status_bar = status_bar
+        self.zoom = 1.0
+        self.rotation = 0
+        self.flipped = False
+        self.last_pos = QPoint()
+        self.dragging = False
+
+
+        self.layout = QVBoxLayout(self)
+        self.scroll = QScrollArea(self)
+        self.label = QLabel()
+        self.pixmap = QPixmap(image_path)
+
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.label.customContextMenuRequested.connect(self.show_context_menu)
+        self.scroll.setWidget(self.label)
+        self.scroll.setWidgetResizable(True)
+
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMinimum(10)
+        self.slider.setMaximum(1000)
+        self.slider.setValue(100)
+        self.slider.valueChanged.connect(self.slider_zoom_changed)
+
+        self.zoom_label = QLabel("100%")
+        self.zoom_label.setStyleSheet("padding-left: 6px; color: gray")
+
+        zoom_layout = QHBoxLayout()
+        zoom_layout.addWidget(self.slider)
+        zoom_layout.addWidget(self.zoom_label)
+
+        self.layout.addWidget(self.scroll)
+        self.layout.addLayout(zoom_layout)
+        self.setLayout(self.layout)
+
+        self.update_image()
+
+
+        QShortcut(QKeySequence("Ctrl+0"), self, self.reset_zoom)
+
+    def slider_zoom_changed(self, value):
+        self.zoom = value / 100.0
+        self.update_image()
+
+    def wheelEvent(self, event: QWheelEvent):
+        if QApplication.keyboardModifiers() == Qt.ControlModifier:
+            angle = event.angleDelta().y()
+            factor = 1.1 if angle > 0 else 0.9
+            self.zoom *= factor
+            self.zoom = max(0.1, min(10.0, self.zoom))
+            self.update_image()
+
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.LeftButton:
+            self.last_pos = event.pos()
+            self.dragging = True
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        if self.dragging:
+            delta = event.pos() - self.last_pos
+            self.scroll.horizontalScrollBar().setValue(
+                self.scroll.horizontalScrollBar().value() - delta.x())
+            self.scroll.verticalScrollBar().setValue(
+                self.scroll.verticalScrollBar().value() - delta.y())
+            self.last_pos = event.pos()
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == Qt.LeftButton:
+            self.dragging = False
+
+    def show_context_menu(self, pos):
+        menu = QMenu(self)
+        menu.addAction("Reset Zoom", self.reset_zoom)
+        menu.addAction("Rotate Right", self.rotate_right)
+        menu.addAction("Flip Horizontal", self.flip_horizontal)
+        menu.exec_(self.label.mapToGlobal(pos))
+
+    def rotate_right(self):
+        self.rotation = (self.rotation + 90) % 360
+        self.update_image()
+
+    def flip_horizontal(self):
+        self.flipped = not self.flipped
+        self.update_image()
+
+    def reset_zoom(self):
+        self.zoom = 1.0
+        self.update_image()
+
+    def update_image(self):
+        transform = QTransform()
+        transform.rotate(self.rotation)
+        if self.flipped:
+            transform.scale(-1, 1)
+        transformed_pixmap = self.pixmap.transformed(transform, Qt.SmoothTransformation)
+        scaled = transformed_pixmap.scaled(
+            transformed_pixmap.size() * self.zoom,
+            Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.label.setPixmap(scaled)
+        size = scaled.size()
+        self.zoom_label.setText(f"{int(self.zoom * 100)}%")
+        self.slider.blockSignals(True)
+        self.slider.setValue(int(self.zoom * 100))
+        self.slider.blockSignals(False)
+        self.status_bar.showMessage(f"Image Size: {self.pixmap.width()} x {self.pixmap.height()} | Zoom: {int(self.zoom * 100)}%")
+
+
+class HyggshiOSCodeMini(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Hyggshi OS Code Mini")
+        self.setWindowIcon(QIcon("icon.png"))  # Ensure you have an icon file named 'icon.png'
+        self.resize(1000, 650)
+
+        self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        self.setCentralWidget(self.tabs)
+
+        self.project_path = "."
+        self.setup_sidebar()
+        self.setup_menu()
+
+        self.status = QStatusBar()
+        self.setStatusBar(self.status)
+
+        QShortcut(QKeySequence("Ctrl+N"), self, self.new_file)
+
+    def setup_sidebar(self):
+        self.dock = QDockWidget("Explorer", self)
+        self.dock.setAllowedAreas(Qt.LeftDockWidgetArea)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock)
+
+        self.model = QFileSystemModel()
+        self.model.setRootPath(self.project_path)
+        self.tree = QTreeView()
+        self.tree.setModel(self.model)
+        self.tree.setRootIndex(self.model.index(self.project_path))
+        self.tree.doubleClicked.connect(self.tree_item_clicked)
+
+        self.dock.setWidget(self.tree)
+
+    def tree_item_clicked(self, index):
+        path = self.model.filePath(index)
+        if os.path.isfile(path):
+            self.add_new_tab(path)
+
+    def setup_menu(self):
+        menubar = self.menuBar()
+        file_menu = menubar.addMenu("File")
+        file_menu.addAction("New File", self.new_file)
+        file_menu.addAction("Open File", self.open_file)
+        file_menu.addAction("Open Folder", self.open_folder)
+        file_menu.addAction("Save File", self.save_file)
+        file_menu.addAction("Save File As", self.save_file_as)
+        file_menu.addAction("Exit", self.close)
+
+        theme_menu = menubar.addMenu("Theme")
+        theme_menu.addAction("Dark Theme", self.apply_dark_theme)
+        theme_menu.addAction("Light Theme", self.apply_light_theme)
+
+        lang_menu = menubar.addMenu("Language")
+        for lang in ["Plain Text", "Python", "C++", "JavaScript", "HTML"]:
+            act = lang_menu.addAction(lang)
+            act.triggered.connect(lambda checked, l=lang: self.set_language_for_current_tab(l))
+
+    def new_file(self):
+        self.add_new_tab()
+
+    def open_file(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*.*)")
+        if path:
+            self.add_new_tab(path)
+
+    def open_folder(self):
+        path = QFileDialog.getExistingDirectory(self, "Open Folder", "")
+        if path:
+            self.project_path = path
+            self.model.setRootPath(path)
+            self.tree.setRootIndex(self.model.index(path))
+
+    def save_file(self):
+        tab = self.current_editor_tab()
+        if isinstance(tab, EditorTab) and not tab.save_file():
+            tab.save_file_as()
+
+    def save_file_as(self):
+        tab = self.current_editor_tab()
+        if isinstance(tab, EditorTab):
+            tab.save_file_as()
+
+    def add_new_tab(self, path=None):
+
+        image_exts = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg", ".webp", ".tiff", ".ico", ".avif"]
+        txt_exts = [".txt"]
+
+        if path and os.path.splitext(path)[1].lower() in image_exts:
+            tab = ImageTab(path, self.statusBar())
+            icon = QIcon("icons/image.png")
+        elif path and os.path.splitext(path)[1].lower() in txt_exts:
+            tab = EditorTab(path)
+            tab.load_file(path)
+            icon = QIcon("icons/text.png")
+        else:
+            tab = EditorTab(path)
+            if path and not tab.load_file(path):
+                return
+            icon = QIcon("icons/code.png")
+
+        title = os.path.basename(path) if path else "Untitled"
+        self.tabs.addTab(tab, icon, title)
+        self.tabs.setCurrentWidget(tab)
+
+    def close_tab(self, index):
+        self.tabs.removeTab(index)
+
+    def current_editor_tab(self):
+        return self.tabs.currentWidget()
+
+    def set_language_for_current_tab(self, lang):
+        tab = self.current_editor_tab()
+        if isinstance(tab, EditorTab):
+            tab.set_language(lang)
+
+    def apply_dark_theme(self):
+        for i in range(self.tabs.count()):
+            tab = self.tabs.widget(i)
+            if isinstance(tab, EditorTab):
+                tab.set_dark_theme()
+
+    def apply_light_theme(self):
+        for i in range(self.tabs.count()):
+            tab = self.tabs.widget(i)
+            if isinstance(tab, EditorTab):
+                tab.set_light_theme()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = HyggshiOSCodeMini()
+    window.show()
+    sys.exit(app.exec_())
