@@ -39,7 +39,8 @@ jobs:
     - name: Build executable
       shell: bash
       run: |
-        pyinstaller --onefile --distpath build_dist HyggshiOSCodeMini.py
+        pyinstaller --onefile "Hyggshi OS Code Mini/HyggshiOSCodeMini.py"
+
 
     - name: List build folder (debug)
       run: ls -R build_dist
