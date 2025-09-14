@@ -42,7 +42,8 @@ class PluginManager:
             "QsciLexerHTML": QsciLexerHTML,
             "QsciLexerJava": QsciLexerJava,
             "QsciLexerJSON": QsciLexerJSON,
-            "QsciLexerLua": QsciLexerLua
+            "QsciLexerLua": QsciLexerLua,
+            "QsciLexerPHP": QsciLexerPHP  # pyright: ignore[reportUndefinedVariable]
         }
         cls = lexer_map.get(name, None)
         return cls() if cls else None
