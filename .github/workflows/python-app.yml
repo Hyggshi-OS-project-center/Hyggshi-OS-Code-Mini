@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest]
 
     defaults:
       run:
@@ -39,8 +39,6 @@ jobs:
     - name: Build executable
       shell: bash
       run: |
-        # Windows / macOS: PyInstaller tạo .exe / .app
-        # Linux: tạo .AppImage
         pyinstaller --onefile --distpath build_dist HyggshiOSCodeMini.py
 
     - name: List build folder (debug)
