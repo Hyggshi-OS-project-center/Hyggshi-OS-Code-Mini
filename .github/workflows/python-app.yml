@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
     defaults:
       run:
@@ -33,13 +33,21 @@ jobs:
         pip install pyinstaller
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+    - name: List files before build (debug)
+      run: ls -R
+
     - name: Build executable
       shell: bash
       run: |
-        pyinstaller --onefile HyggshiOSCodeMini.py
+        # Windows / macOS: PyInstaller tạo .exe / .app
+        # Linux: tạo .AppImage
+        pyinstaller --onefile --distpath build_dist HyggshiOSCodeMini.py
+
+    - name: List build folder (debug)
+      run: ls -R build_dist
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: HyggshiOSCodeMini-${{ matrix.os }}
-        path: dist/*
+        path: build_dist/*
