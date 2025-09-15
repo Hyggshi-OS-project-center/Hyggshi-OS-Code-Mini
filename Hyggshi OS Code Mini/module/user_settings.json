@@ -1,9 +1,0 @@
-{
-  "timeout_script": 60,
-  "output_theme": "Dark",
-  "notify_on_finish": true,
-  "plugin_folder": "module/Extensions",
-  "developer_mode": false,
-  "auto_stop_plugin": true,
-  "language": "vi_VN"
-}
