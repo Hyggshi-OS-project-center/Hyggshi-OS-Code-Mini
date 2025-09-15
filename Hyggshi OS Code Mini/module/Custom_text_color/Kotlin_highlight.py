@@ -1,22 +1,9 @@
-# HSI Language Support Plugin
-# This plugin provides syntax highlighting and basic features for HSI programming language
-# Author: Hyggshi OS
-# Version: 1.0.0
-
-language = "HSI"
-extension = ".hsi"
-features = [
-    "syntax_highlighting",
-    "basic_autocomplete",
-    "error_detection"
-]
-
 from PyQt5.Qsci import QsciScintilla
 from PyQt5.QtGui import QColor
 
-def apply_hsi_highlight(editor: QsciScintilla):
+def apply_kotlin_highlight(editor: QsciScintilla):
     """
-    Highlight HSI: keyword, string, comment, number, type.
+    Highlight Kotlin: keyword, string, comment, number, type.
     """
     editor.setLexer(None)
     editor.SendScintilla(editor.SCI_STYLESETFONT, 0, b"Consolas")
@@ -24,8 +11,8 @@ def apply_hsi_highlight(editor: QsciScintilla):
     editor.SendScintilla(editor.SCI_STYLESETFORE, 0, QColor("#eaeaea"))
 
     style_map = {
-        1: QColor("#3194E6"),   # Keyword
-        2: QColor("#C79C4B"),   # String
+        1: QColor("#569CD6"),   # Keyword
+        2: QColor("#CE9178"),   # String
         3: QColor("#6A9955"),   # Comment
         4: QColor("#B5CEA8"),   # Number
         5: QColor("#4EC9B0"),   # Type
@@ -36,15 +23,13 @@ def apply_hsi_highlight(editor: QsciScintilla):
         editor.SendScintilla(editor.SCI_STYLESETFONT, style, b"Consolas")
         editor.SendScintilla(editor.SCI_STYLESETSIZE, style, 15)
 
-    hsi_keywords = [
-        "func", "var", "const", "type", "struct", "interface", "package", "import",
-        "return", "if", "else", "for", "while", "do", "switch", "case", "break", "continue",
-        "in", "is", "as", "try", "catch", "throw", "self", "super", "language:", "version:", "extension:",
-        "language:", "features:"
+    kotlin_keywords = [
+        "fun", "val", "var", "class", "object", "interface", "package", "import",
+        "return", "if", "else", "for", "while", "do", "when", "break", "continue",
+        "in", "is", "as", "try", "catch", "finally", "throw", "this", "super"
     ]
-    hsi_types = [
-        "Int", "Double", "Float", "Bool", "String", "Char", "Array", "Dictionary", "Set", "Any", "Optional",
-        "-", "#"
+    kotlin_types = [
+        "Int", "Double", "Float", "Long", "Short", "Byte", "Boolean", "Char", "String", "Unit", "Any", "Array", "List", "Map", "Set"
     ]
 
     for i in range(editor.lines()):
@@ -63,15 +48,14 @@ def apply_hsi_highlight(editor: QsciScintilla):
             editor.SendScintilla(editor.SCI_STARTSTYLING, start_pos, 31)
             editor.SendScintilla(editor.SCI_SETSTYLING, len(text), 4)
         # Type
-        elif any(t in text.split() for t in hsi_types):
+        elif any(t in text.split() for t in kotlin_types):
             editor.SendScintilla(editor.SCI_STARTSTYLING, start_pos, 31)
             editor.SendScintilla(editor.SCI_SETSTYLING, len(text), 5)
         # Keyword
-        elif any(word in text.split() for word in hsi_keywords):
+        elif any(word in text.split() for word in kotlin_keywords):
             editor.SendScintilla(editor.SCI_STARTSTYLING, start_pos, 31)
             editor.SendScintilla(editor.SCI_SETSTYLING, len(text), 1)
         # Mặc định
         else:
             editor.SendScintilla(editor.SCI_STARTSTYLING, start_pos, 31)
             editor.SendScintilla(editor.SCI_SETSTYLING, len(text), 0)
-        
