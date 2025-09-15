@@ -33,6 +33,13 @@ from module.Media.Photoview import PhotoView
 from module.System.ShortcutManager import ShortcutManager
 from module.System.QsciLexer import get_lexer
 from module.System.Autocomplete import AutocompleteManager
+from module.Custom_text_color.Swift_highlight import apply_swift_highlight
+from module.Custom_text_color.css_highlight import apply_css_highlight
+from module.Custom_text_color.Ruby_highlight import apply_ruby_highlight
+from module.Custom_text_color.go_highlight import apply_go_highlight
+from module.Custom_text_color.Kotlin_highlight import apply_kotlin_highlight
+from module.Custom_text_color.Batch_highlight import apply_batch_highlight
+from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
 from module.System.Notification import show_choice_notification, show_notification
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
@@ -339,6 +346,13 @@ class EditorTab(QWidget):
             self.editor.setLexer(QsciLexerPython())
         elif lang == "C++":
             self.editor.setLexer(QsciLexerCPP())
+        elif lang == "C":
+            try:
+                self.editor.setLexer(QsciLexerCPP())
+            except NameError:
+                self.editor.setLexer(None)
+        elif lang == "CSS":
+            apply_css_highlight(self.editor)
         elif lang == "JavaScript":
             self.editor.setLexer(QsciLexerJavaScript())
         elif lang == "HTML":
@@ -351,15 +365,25 @@ class EditorTab(QWidget):
             self.editor.setLexer(QsciLexerLua())
         elif lang == "Markdown":
             apply_markdown_highlight(self.editor)
+        elif lang == "Ruby":
+            apply_ruby_highlight(self.editor)
+        elif lang == "Go":
+            apply_go_highlight(self.editor)
+        elif lang == "Kotlin":
+            apply_kotlin_highlight(self.editor)
+        elif lang == "Swift":
+            apply_swift_highlight(self.editor)
+        elif lang == "hsi":
+            apply_hsi_highlight(self.editor)
         elif lang == "C#":
             try:
                 self.editor.setLexer(QsciLexerCSharp())
             except NameError:
                 self.editor.setLexer(None)
+        elif lang == "Batch":
+            apply_batch_highlight(self.editor)
         else:
             self.editor.setLexer(None)
-    
-
 
     def set_language_from_extension(self, path):
         if not path:
@@ -374,14 +398,38 @@ class EditorTab(QWidget):
             self.set_language("JavaScript")
         elif ext in [".html", ".htm"]:
             self.set_language("HTML")
+        elif ext in [".css"]:
+            self.set_language("CSS")
+        elif ext in [".java"]:
+            self.set_language("Java")
+        elif ext in [".c"]:
+            self.set_language("C")
         elif ext in [".json"]:
             self.set_language("JSON")
         elif ext in [".lua"]:
             self.set_language("Lua")
         elif ext in [".md"]:
             self.set_language("Markdown")
+        elif ext in [".rb"]:
+            self.set_language("Ruby")
+        elif ext in [".go"]:
+            self.set_language("Go")
+        elif ext in [".rs"]:
+            self.set_language("Rust")
+        elif ext in [".swift"]:
+            self.set_language("Swift")
+        elif ext in [".kt"]:
+            self.set_language("Kotlin")
+        elif ext in [".dart"]:
+            self.set_language("Dart")
+        elif ext in [".sql"]:
+            self.set_language("SQL")
+        elif ext in [".yaml", ".yml"]:
+            self.set_language("YAML")
+        elif ext in [".xml"]:
+            self.set_language("XML")
         else:
-            self.set_language("Plain Text")  
+            self.set_language("Plain Text")
         
 
 # Ví dụ sử dụng trong HyggshiOSCodeMini.py:
@@ -513,8 +561,8 @@ class CustomIconProvider(QFileIconProvider):
             'ini': 'icons/file-ini.svg',
             'temp': 'icons/file-temp.png',
             'tmp': 'icons/file-temp.png',
-            
         }
+        
         self.folder_icon = 'icons/default_folder.svg'
         self.folder_python_icon = 'icons/folder_type_python.svg'
         self.folder_python_open_icon = 'icons/folder_type_python_opened.svg'
@@ -539,6 +587,7 @@ class CustomIconProvider(QFileIconProvider):
         self.folder_type_github = 'icons/folder_type_github.svg'
         self.folder_type_git = 'icons/folder_type_git.svg'
         self.folder_type_gitlab = 'icons/folder_type_gitlab.svg'
+        self.folder_type_Roblox_Studio = 'icons/folder_type_Roblox_Studio.png'
 
 
     def icon(self, fileInfo: QFileInfo):
@@ -562,9 +611,13 @@ class CustomIconProvider(QFileIconProvider):
                 has_TS = any(name.endswith('.ts') for name in os.listdir(folder_path))
                 has_Batch = any(name.endswith(('.bat', '.cmd', '.hsi', '.hsiext')) for name in os.listdir(folder_path))
                 has_Config = any(name.lower() in ('config', 'configs', 'configuration', 'settings') for name in os.listdir(folder_path))
-                has_github = any(name.endswith(('.github', '.Github')) for name in os.listdir(folder_path))
+                has_Roblox = any(name.endswith(('.rbxl', '.rbxlx')) for name in os.listdir(folder_path))
                 has_Git = any(name.lower() == '.git' for name in os.listdir(folder_path))
                 has_Gitlab = any(name.lower() == '.gitlab' for name in os.listdir(folder_path))
+
+                folder_name = os.path.basename(folder_path).lower()
+                # Sửa phát hiện .github
+                has_github = folder_name == ".github"
 
                 is_opened = self._is_folder_opened(folder_path)
                 if has_python:
@@ -596,7 +649,7 @@ class CustomIconProvider(QFileIconProvider):
                     icon_path = os.path.join(
                         os.path.dirname(__file__),
                         self.folder_type_github
-                    )
+                  )
                 elif has_plugins:
                     icon_path = os.path.join(
                         os.path.dirname(__file__),
@@ -626,6 +679,11 @@ class CustomIconProvider(QFileIconProvider):
                     icon_path = os.path.join(
                         os.path.dirname(__file__),
                         self.folder_type_json
+                    )
+                elif has_Roblox:
+                    icon_path = os.path.join(
+                        os.path.dirname(__file__),
+                        self.folder_type_Roblox_Studio
                     )
                 elif has_js:
                     icon_path = os.path.join(
@@ -907,6 +965,10 @@ class HyggshiOSCodeMini(QMainWindow):
             self.tree.setIndentation(12)
             self.tree.setRootIsDecorated(False)
             self.tree.setIconSize(QSize(32, 32))  # Phóng to icon explorer
+            # XÓA CÁC CỘT NGÀY THÁNG NĂM VÀ DUNG LƯỢNG
+            self.tree.setColumnHidden(1, True)  # Hide Size column
+            self.tree.setColumnHidden(2, True)  # Hide Type column
+            self.tree.setColumnHidden(3, True)  # Hide Date Modified column
         except Exception:
             pass
 
@@ -1289,9 +1351,71 @@ class HyggshiOSCodeMini(QMainWindow):
 
         lang_menu = menubar.addMenu("💻 Language")
 
-        default_langs = ["Plain Text", "Python", "C++", "JavaScript", "HTML", "Java", "JSON", "Lua", "Markdown", "C#"]
+        default_langs = [
+            "Plain Text", "Python", "C++", "JavaScript", "HTML", "CSS", "Java", 
+            "JSON", "Lua", "Markdown", "C#", "Ruby", "Go", "Rust", "Swift", 
+            "Kotlin", "Dart", "SQL", "YAML", "XML", "PHP", "Bash", "Batch", 
+            "PowerShell", "TypeScript", "Scala", "Perl", "Haskell", "Clojure", 
+            "Erlang", "Elixir", "F#", "OCaml", "Pascal", "Fortran", "Assembly", 
+            "VHDL", "Verilog", "Tcl", "VBScript", "AutoHotkey", "Ini", "TOML", 
+            "Dockerfile", "Makefile", "CMake", "Gradle", "Nginx", "Apache", "Log",
+            "hsi",
+            "Text"
+        ]
         for lang in default_langs:
-            act = lang_menu.addAction(f"🐍 {lang}" if lang == "Python" else f"⚡ {lang}" if lang == "JavaScript" else f"🔧 {lang}" if lang == "C++" else f"🌐 {lang}" if lang == "HTML" else f"☕ {lang}" if lang == "Java" else f"📄 {lang}" if lang == "Markdown" else f"🔷 {lang}" if lang == "C#" else f"📝 {lang}")
+            act = lang_menu.addAction(
+            f"🐍 {lang}" if lang == "Python"
+            else f"⚡ {lang}" if lang == "JavaScript"
+            else f"🔧 {lang}" if lang == "C++"
+            else f"🌐 {lang}" if lang == "HTML"
+            else f"🧱 {lang}" if lang == "CSS"
+            else f"☕ {lang}" if lang == "Java"
+            else f"📄 {lang}" if lang == "Markdown"
+            else f"🔷 {lang}" if lang == "C#"
+            else f"💎 {lang}" if lang == "Ruby"
+            else f"🐹 {lang}" if lang == "Go"
+            else f"🦀 {lang}" if lang == "Rust"
+            else f"🍎 {lang}" if lang == "Swift"
+            else f"📱 {lang}" if lang == "Kotlin"
+            else f"🎯 {lang}" if lang == "Dart"
+            else f"🗄️ {lang}" if lang == "SQL"
+            else f"📜 {lang}" if lang == "YAML"
+            else f"📂 {lang}" if lang == "XML"
+            else f"🐘 {lang}" if lang == "PHP"
+            else f"🐚 {lang}" if lang == "Bash"
+            else f"📑 {lang}" if lang == "Batch"
+            else f"⚡ {lang}" if lang == "PowerShell"
+            else f"🌀 {lang}" if lang == "TypeScript"
+            else f"🔮 {lang}" if lang == "Scala"
+            else f"🧬 {lang}" if lang == "Perl"
+            else f"🔗 {lang}" if lang == "Haskell"
+            else f"🌿 {lang}" if lang == "Clojure"
+            else f"📡 {lang}" if lang == "Erlang"
+            else f"✨ {lang}" if lang == "Elixir"
+            else f"📘 {lang}" if lang == "F#"
+            else f"🦉 {lang}" if lang == "OCaml"
+            else f"📜 {lang}" if lang == "Pascal"
+            else f"📐 {lang}" if lang == "Fortran"
+            else f"⚙️ {lang}" if lang == "Assembly"
+            else f"🔌 {lang}" if lang == "VHDL"
+            else f"🔧 {lang}" if lang == "Verilog"
+            else f"🔤 {lang}" if lang == "Tcl"
+            else f"📄 {lang}" if lang == "VBScript"
+            else f"⌨️ {lang}" if lang == "AutoHotkey"
+            else f"⚙️ {lang}" if lang == "Ini"
+            else f"📋 {lang}" if lang == "TOML"
+            else f"🐳 {lang}" if lang == "Dockerfile"
+            else f"🔨 {lang}" if lang == "Makefile"
+            else f"🛠️ {lang}" if lang == "CMake"
+            else f"📦 {lang}" if lang == "Gradle"
+            else f"🌐 {lang}" if lang == "Nginx"
+            else f"🌍 {lang}" if lang == "Apache"
+            else f"📜 {lang}" if lang == "Log"
+            else f"👾 {lang}" if lang == "hsi"
+            else f"📝 {lang}"
+            )
+            act.triggered.connect(lambda _, l=lang: self.set_language_for_current_tab(l))
+            
             act.triggered.connect(lambda _, l=lang: self.set_language_for_current_tab(l))
 
         if hasattr(self.plugin_manager, "get_supported_languages"):
