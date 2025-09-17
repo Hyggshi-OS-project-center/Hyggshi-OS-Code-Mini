@@ -42,7 +42,6 @@ from module.Custom_text_color.go_highlight import apply_go_highlight
 from module.Custom_text_color.Kotlin_highlight import apply_kotlin_highlight
 from module.Custom_text_color.Batch_highlight import apply_batch_highlight
 from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
-from module.Custom_text_color.typeScript_highlight import apply_typescript_highlight
 from module.System.loading import show_loading_then_main
 from module.System.check_update import check_and_update
 from module.System.auto_recovery_file import auto_save_file, auto_load_file, remove_recovery_file
@@ -382,8 +381,6 @@ class EditorTab(QWidget):
             apply_swift_highlight(self.editor)
         elif lang == "hsi":
             apply_hsi_highlight(self.editor)
-        elif lang == "TypeScript":
-            apply_typescript_highlight(self.editor)
         elif lang == "C#":
             try:
                 self.editor.setLexer(QsciLexerCSharp())
