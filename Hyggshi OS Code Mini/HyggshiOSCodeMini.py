@@ -40,6 +40,8 @@ from module.Custom_text_color.go_highlight import apply_go_highlight
 from module.Custom_text_color.Kotlin_highlight import apply_kotlin_highlight
 from module.Custom_text_color.Batch_highlight import apply_batch_highlight
 from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
+from module.Custom_text_color.typeScript_highlight import apply_typescript_highlight
+from module.System.loading import show_loading_then_main
 from module.System.Notification import show_choice_notification, show_notification
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
@@ -375,6 +377,8 @@ class EditorTab(QWidget):
             apply_swift_highlight(self.editor)
         elif lang == "hsi":
             apply_hsi_highlight(self.editor)
+        elif lang == "TypeScript":
+            apply_typescript_highlight(self.editor)
         elif lang == "C#":
             try:
                 self.editor.setLexer(QsciLexerCSharp())
@@ -2645,6 +2649,12 @@ def show_notification(message, parent=None, timeout=2000):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = HyggshiOSCodeMini()
-    window.show()
-    sys.exit(app.exec_())
+    # Example usage with custom screen size
+    show_loading_then_main(
+        HyggshiOSCodeMini,
+        image_path="Resources/Image.png", 
+        img_width=1090, 
+        img_height=615,
+        image_size=(1090, 615),  # Custom loading screen size
+        print_info=True
+    )
