@@ -12,10 +12,8 @@ call :check_folder Resources
 REM Function to check and install each package
 call :check_install pyqt5
 call :check_install pyqt5-sip
-call :check_install pyinstaller
 call :check_install qscintilla
 call :check_install requests
-call :check_install lupa
 call :check_install keyring
 call :check_install pillow
 call :check_install markdown
