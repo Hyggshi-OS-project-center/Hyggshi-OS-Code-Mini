@@ -1,4 +1,4 @@
-# Version: 1.8.8
+# Version: 1.8.8 (9/17/2025)
 
 - fixed the app not activating error. about a typeScript_highlight.py error but it is not available
 - fixed the interface a bit more professional
