@@ -41,25 +41,11 @@ try:
 except Exception:
     genai = None
 
-from lupa import LuaRuntime
+from module.logicAI import on_user_message as python_fallback_logic
 import os
-
-# Initialize Lua runtime
-lua = LuaRuntime(unpack_returned_tuples=True)
-lua_path = os.path.join(os.path.dirname(__file__), "logicAI.lua")
 
 # Load Lua script with proper error handling
 logicAI = None
-try:
-    if os.path.exists(lua_path):
-        with open(lua_path, "r", encoding="utf-8") as f:
-            logicAI = lua.execute(f.read())
-    else:
-        print(f"Warning: Lua script 'logicAI.lua' not found at path: {lua_path}")
-except Exception as e:
-    print(f"Error loading Lua script: {e}")
-    logicAI = None
-
 # Import logging functions
 try:
     from .log_AI import append_log, append_error
@@ -83,6 +69,17 @@ except ImportError:
         from Gemini import call_gemini
     except ImportError:
         call_gemini = None
+
+try:
+    from lupa import LuaRuntime
+except Exception:
+    LuaRuntime = None
+
+try:
+    from module.logicAI import on_user_message
+except ImportError:
+    def on_user_message(message):
+        return "AI logic offline không khả dụng."
 
 
 class ChatAIWidget(QWidget):
@@ -727,6 +724,22 @@ class ChatAIWidget(QWidget):
         except Exception as e:
             print(f"Error refreshing chat display: {e}")
 
+    def get_ai_response(self, message):
+        # Nếu có LuaRuntime, dùng Lua, nếu không thì fallback sang Python logic
+        if LuaRuntime:
+            try:
+                lua = LuaRuntime(unpack_returned_tuples=True)
+                # Nếu có file logicAI.lua, load và chạy
+                with open("module/logicAI.lua", "r", encoding="utf-8") as f:
+                    lua_code = f.read()
+                lua_func = lua.execute(lua_code)
+                return lua_func(message)
+            except Exception:
+                # Nếu lỗi, fallback sang Python logic
+                return on_user_message(message)
+        else:
+            return on_user_message(message)
+
     def _call_openai_api(self):
         """Call OpenAI API"""
         if requests is None:
@@ -924,3 +937,35 @@ def main():
     widget = ChatAIWidget()
     widget.show()
     sys.exit(app.exec_())
+
+# logicAI.py
+# Hyggshi OS - Lua logic for AI fallback
+# This file is intended to be loaded and executed by lupa.LuaRuntime in ChatAI.py
+
+def on_user_message(message):
+    """
+    Hàm Python giả lập cho Lua: trả lời mặc định khi không có API.
+    Nếu bạn dùng Lua thực sự, hãy viết logic trong file logicAI.lua.
+    """
+    if not message.strip():
+        return "Xin hãy nhập câu hỏi hoặc nội dung bạn muốn hỏi AI."
+    if "hello" in message.lower() or "hi" in message.lower():
+        return "Xin chào! Tôi là trợ lý AI của bạn. Hãy hỏi tôi bất cứ điều gì."
+    if "python" in message.lower():
+        return "Bạn muốn hỏi gì về Python? Tôi có thể giúp bạn giải thích, sửa lỗi hoặc viết code mẫu."
+    return f"Bạn vừa nói: {message}\n(Tôi là AI offline, hãy cấu hình API để sử dụng AI thực sự!)"
+
+# Nếu bạn muốn dùng Lua thực sự, hãy tạo file logicAI.lua với nội dung tương tự:
+# function on_user_message(message)
+#     if message == "" then
+#         return "Xin hãy nhập câu hỏi hoặc nội dung bạn muốn hỏi AI."
+#     end
+#     if string.find(string.lower(message), "hello") or string.find(string.lower(message), "hi") then
+#         return "Xin chào! Tôi là trợ lý AI của bạn. Hãy hỏi tôi bất cứ điều gì."
+#     end
+#     if string.find(string.lower(message), "python") then
+#         return "Bạn muốn hỏi gì về Python? Tôi có thể giúp bạn giải thích, sửa lỗi hoặc viết code mẫu."
+#     end
+#     return "Bạn vừa nói: " .. message .. "\n(Tôi là AI offline, hãy cấu hình API để sử dụng AI thực sự!)"
+# end
+
