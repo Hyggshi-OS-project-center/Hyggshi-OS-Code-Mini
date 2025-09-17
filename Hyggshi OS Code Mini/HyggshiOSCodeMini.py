@@ -34,6 +34,7 @@ from module.System.ShortcutManager import ShortcutManager
 from module.System.QsciLexer import get_lexer
 from module.System.Autocomplete import AutocompleteManager
 from module.System.Notification import show_notification
+from module.System.UI_UX import set_dark_theme
 from module.Custom_text_color.Swift_highlight import apply_swift_highlight
 from module.Custom_text_color.css_highlight import apply_css_highlight
 from module.Custom_text_color.Ruby_highlight import apply_ruby_highlight
@@ -44,6 +45,7 @@ from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
 from module.Custom_text_color.typeScript_highlight import apply_typescript_highlight
 from module.System.loading import show_loading_then_main
 from module.System.check_update import check_and_update
+from module.System.auto_recovery_file import auto_save_file, auto_load_file, remove_recovery_file
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
 # from PyQt5.QtWidgets import QTextEdit
@@ -305,6 +307,8 @@ class EditorTab(QWidget):
                         ext.on_save()
                     elif hasattr(ext, "run"):
                         ext.run()
+            # Xóa file recovery sau khi lưu thành công
+            remove_recovery_file(self.file_path)
             return True
         except Exception as e:
             print("Error saving file:", e)
@@ -951,6 +955,16 @@ class HyggshiOSCodeMini(QMainWindow):
         # Gọi khi khởi động ứng dụng:
         check_update_on_start()
 
+        # Giả sử self.editor là widget soạn thảo văn bản
+        self.editor = QsciScintilla()
+        self.setup_editor_context(self.editor)
+        self.new_file()  # Mở tab mới khi khởi động
+        self.setCentralWidget(self.main_splitter)
+        self.auto_save_timer = QTimer()
+        self.auto_save_timer.start(5 * 60 * 1000)  # Tự động lưu mỗi 5 phút
+        self.modified = False
+        self.current_process_thread = None  # Để quản lý tiến trình hiện tại
+        self.running_process_lock = threading.Lock()
     def load_extensions(self):
         # Nạp extension Python
         # self.extensions.append(MyPythonExtension(self.editor))
@@ -980,8 +994,17 @@ class HyggshiOSCodeMini(QMainWindow):
             self.tree.setHeaderHidden(True)
             self.tree.setIndentation(12)
             self.tree.setRootIsDecorated(False)
-            self.tree.setIconSize(QSize(32, 32))  # Phóng to icon explorer
-            # XÓA CÁC CỘT NGÀY THÁNG NĂM VÀ DUNG LƯỢNG
+            # LÀM ICON NỔI BẬT HƠN
+            self.tree.setIconSize(QSize(40, 40))  # Tăng kích thước icon
+            self.tree.setStyleSheet("""
+                QTreeView::icon {
+                    background: #23272e;
+                    border-radius: 8px;
+                    padding: 2px;
+                    margin: 2px;
+                    border: 2px solid #007acc;
+                }
+            """)
             self.tree.setColumnHidden(1, True)  # Hide Size column
             self.tree.setColumnHidden(2, True)  # Hide Type column
             self.tree.setColumnHidden(3, True)  # Hide Date Modified column
@@ -2619,9 +2642,25 @@ class HyggshiOSCodeMini(QMainWindow):
         ]
         self.autocomplete_manager = AutocompleteManager(self.editor, api_words=keywords)
 
+    # Ví dụ sử dụng trong HyggshiOSCodeMini.py:
+    def on_update_finished(self):
+        show_notification("Cập nhật", "Đã kiểm tra và cập nhật xong từ Github!")
+
+def new_func(app):
+    set_dark_theme()
+    app.setFont(QFont("Consolas", 12))
+
 if __name__ == "__main__":
+    import sys
+    from PyQt5.QtWidgets import QApplication
+
+    # Create QApplication instance
     app = QApplication(sys.argv)
-    # Example usage with custom screen size
+
+    # Set dark theme and font before showing any windows
+    new_func(app)
+
+    # Show loading screen then main window with custom settings
     show_loading_then_main(
         HyggshiOSCodeMini,
         image_path="Resources/Image.png", 
@@ -2630,3 +2669,7 @@ if __name__ == "__main__":
         image_size=(1090, 615),  # Custom loading screen size
         print_info=True
     )
+
+    # Exit application when all windows are closed
+    check_and_update()  # KHÔNG dùng threading.Thread(target=check_and_update)
+    sys.exit(app.exec_())
