@@ -33,6 +33,7 @@ from module.Media.Photoview import PhotoView
 from module.System.ShortcutManager import ShortcutManager
 from module.System.QsciLexer import get_lexer
 from module.System.Autocomplete import AutocompleteManager
+from module.System.Notification import show_notification
 from module.Custom_text_color.Swift_highlight import apply_swift_highlight
 from module.Custom_text_color.css_highlight import apply_css_highlight
 from module.Custom_text_color.Ruby_highlight import apply_ruby_highlight
@@ -42,7 +43,7 @@ from module.Custom_text_color.Batch_highlight import apply_batch_highlight
 from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
 from module.Custom_text_color.typeScript_highlight import apply_typescript_highlight
 from module.System.loading import show_loading_then_main
-from module.System.Notification import show_choice_notification, show_notification
+from module.System.check_update import check_and_update
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
 # from PyQt5.QtWidgets import QTextEdit
@@ -938,6 +939,17 @@ class HyggshiOSCodeMini(QMainWindow):
         self.shortcut_manager.add_shortcut("Ctrl+S", self.save_current_file, name="save_file")
 
         self.apply_vscode_style()
+
+        import threading
+        def check_update_on_start():
+            try:
+                from module.System.check_update import check_and_update
+                threading.Thread(target=check_and_update, daemon=True).start()
+            except Exception as e:
+                print("Không thể kiểm tra cập nhật:", e)
+
+        # Gọi khi khởi động ứng dụng:
+        check_update_on_start()
 
     def load_extensions(self):
         # Nạp extension Python
@@ -2606,46 +2618,6 @@ class HyggshiOSCodeMini(QMainWindow):
             "break", "continue", "pass", "yield", "lambda", "global", "nonlocal", "assert", "raise"
         ]
         self.autocomplete_manager = AutocompleteManager(self.editor, api_words=keywords)
-
-    def open_with_choice(self):
-        result = show_choice_notification("Mở bằng gì", "Python?", "Web?", parent=self)
-        if result == "python":
-            # Mở bằng Python
-            self.run_current_file()
-        elif result == "web":
-            # Mở bằng Web
-            url = "http://localhost:8000"  # Địa chỉ URL mặc định
-            webbrowser.open(url)
-
-def show_notification(message, parent=None, timeout=2000):
-    from PyQt5.QtWidgets import QDialog, QLabel, QVBoxLayout
-    from PyQt5.QtCore import Qt, QTimer
-
-    class NotificationDialog(QDialog):
-        def __init__(self, message, parent=None, timeout=2000):
-            super().__init__(parent)
-            self.setWindowFlags(Qt.FramelessWindowHint | Qt.Dialog | Qt.WindowStaysOnTopHint)
-            self.setAttribute(Qt.WA_TranslucentBackground)
-            self.setModal(False)
-            self.setStyleSheet("""
-                QDialog { background: #222; border-radius: 16px; }
-                QLabel { color: #fff; font-size: 18px; font-weight: bold; padding: 16px 24px 8px 24px; }
-            """)
-            vbox = QVBoxLayout(self)
-            label = QLabel(message)
-            label.setAlignment(Qt.AlignCenter)
-            vbox.addWidget(label)
-            self.setLayout(vbox)
-            QTimer.singleShot(timeout, self.accept)
-
-    notif = NotificationDialog(message, parent, timeout)
-    if parent:
-        geo = parent.geometry()
-        notif.move(
-            geo.x() + (geo.width() - notif.sizeHint().width()) // 2,
-            geo.y() + (geo.height() - notif.sizeHint().height()) // 2
-        )
-    notif.exec_()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
