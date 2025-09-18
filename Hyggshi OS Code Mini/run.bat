@@ -52,9 +52,8 @@ goto :eof
 where %1 >nul 2>&1
 if errorlevel 1 (
     echo [utility %1] Not found, please install! >> %LOGFILE%
-    REM Depending on the utility, it can be automatically installed here if desired.
+    REM Tùy tiện ích, có thể tự động cài đặt ở đây nếu muốn
 ) else (
     echo [utility %1] Already have. >> %LOGFILE%
 )
 goto :eof
-

@@ -44,6 +44,8 @@ from module.Custom_text_color.Batch_highlight import apply_batch_highlight
 from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
 from module.System.loading import show_loading_then_main
 from module.System.check_update import check_and_update
+from module.System.Sun_mode import apply_sun_mode
+from module.System.Dark_mode import apply_dark_mode
 from module.System.auto_recovery_file import auto_save_file, auto_load_file, remove_recovery_file
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
@@ -939,8 +941,6 @@ class HyggshiOSCodeMini(QMainWindow):
         self.shortcut_manager = ShortcutManager(self)
         self.shortcut_manager.add_shortcut("Ctrl+S", self.save_current_file, name="save_file")
 
-        self.apply_vscode_style()
-
         import threading
         def check_update_on_start():
             try:
@@ -1377,10 +1377,12 @@ class HyggshiOSCodeMini(QMainWindow):
         file_menu.addAction("❌ Exit", self.close)
 
         theme_menu = menubar.addMenu("🎨 Theme")
+
         dark_action = theme_menu.addAction("🌙 Dark Theme")
-        dark_action.triggered.connect(lambda: self.set_theme("dark"))
+        dark_action.triggered.connect(lambda: (self.set_theme("dark"), apply_dark_mode()))
+
         light_action = theme_menu.addAction("☀️ Light Theme")
-        light_action.triggered.connect(lambda: self.set_theme("light"))
+        light_action.triggered.connect(lambda: (self.set_theme("light"), apply_sun_mode()))
         theme_menu.addSeparator()
         toggle_action = theme_menu.addAction("🔄 Toggle Theme (Ctrl+Shift+T)")
         toggle_action.triggered.connect(self.toggle_theme)
@@ -2489,146 +2491,6 @@ class HyggshiOSCodeMini(QMainWindow):
         else:
             # Hiển thị thông báo hoặc xử lý khác nếu tab không hỗ trợ lưu
             pass
-
-    def apply_vscode_style(self):
-        self.setStyleSheet("""
-        QMainWindow {
-            background: #1e1e1e;
-        }
-        QTabWidget::pane {
-            border: none;
-            background: #1e1e1e;
-        }
-        QTabBar::tab {
-            background: #2d2d2d;
-            color: #cccccc;
-            padding: 8px 32px 8px 16px;
-            margin-right: 2px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            font-family: 'Consolas', 'Fira Code', 'JetBrains Mono', monospace;
-            font-size: 13px;
-            min-width: 120px;
-            height: 32px;
-        }
-        QTabBar::tab:selected {
-            background: #1e1e1e;
-            color: #ffffff;
-            border-bottom: 2px solid #007acc;
-        }
-        QTabBar::tab:hover {
-            background: #252526;
-        }
-        QTabBar::close-button {
-            width: 16px;
-            height: 16px;
-            image: (data:Resource/close.png);
-        }
-        QTabBar::close-button:hover {
-            background: #e06c75;
-            border-radius: 8px;
-            image: (data:Resource/close.png);
-        }
-        QToolBar {
-            background: #2c2c32;
-            border: none;
-            spacing: 8px;
-            padding: 4px;
-        }
-        QToolButton {
-            background: transparent;
-            color: #cccccc;
-            border: none;
-            font-size: 15px;
-            padding: 6px 10px;
-        }
-        QToolButton:hover {
-            background: #333337;
-            color: #ffffff;
-        }
-        QFrame#activity_bar {
-            background: #2c2c32;
-            border-right: 1px solid #222;
-        }
-        QDockWidget {
-            background: #23272e;
-            color: #fff;
-            font-size: 15px;
-            font-weight: bold;
-        }
-        QDockWidget::title {
-            background: #23272e;
-            color: #fff;
-            font-size: 15px;
-            font-weight: bold;
-            padding-left: 8px;
-        }
-        QTreeView, QListView {
-            background: #23272e;
-            color: #cccccc;
-            font-size: 13px;
-            border: none;
-        }
-        QTreeView::item:selected {
-            background: #094771;
-            color: #fff;
-        }
-        QScrollBar:vertical, QScrollBar:horizontal {
-            background: #23272e;
-            border: none;
-            width: 10px;
-            margin: 0px;
-        }
-        QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
-            background: #444950;
-            border-radius: 5px;
-            min-height: 20px;
-        }
-        QStatusBar {
-            background: #007acc;
-            color: #fff;
-            font-size: 12px;
-        }
-        QMenuBar {
-            background: #23272e;
-            color: #cccccc;
-        }
-        QMenuBar::item:selected {
-            background: #094771;
-            color: #fff;
-        }
-        QMenu {
-            background: #23272e;
-            color: #cccccc;
-            border: 1px solid #222;
-        }
-        QMenu::item:selected {
-            background: #094771;
-            color: #fff;
-        }
-        QLabel, QLineEdit, QComboBox, QSpinBox, QCheckBox, QPushButton {
-            font-family: 'Consolas', 'Fira Code', 'JetBrains Mono', monospace;
-            font-size: 13px;
-        }
-        QPushButton {
-            background: #2d2d2d;
-            color: #cccccc;
-            border: 1px solid #444;
-            border-radius: 4px;
-            padding: 4px 12px;
-        }
-        QPushButton:hover {
-            background: #3d3d3d;
-            color: #fff;
-            border: 1px solid #007acc;
-        }
-        QLineEdit, QTextEdit, QPlainTextEdit {
-            background: #23272e;
-            color: #cccccc;
-            border: 1px solid #444;
-            border-radius: 4px;
-        }
-        """)
 
     def setup_autocomplete(self):
         # Tùy vào ngôn ngữ, bạn có thể truyền vào danh sách từ khóa phù hợp
