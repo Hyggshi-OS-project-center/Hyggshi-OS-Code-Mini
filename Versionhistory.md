@@ -8,3 +8,11 @@
 - logicAI.lua and language_engine.cc has been renamed to .py file extension because two Language subjects require the use of .dll
 - added splash/loading ability
 - has expanded its language to more than 15 but this number does not accurately reflect
+- Fixing interface mode and adding new files
+
+``` Add file
+Dark_mode.py Fix
+Sun_mode.py New
+language_engine.cc > language_engine.py
+logicAI.lua > logicAI.py
+```
