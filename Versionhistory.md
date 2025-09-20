@@ -1,42 +1,33 @@
-# Version History
-
-## [2.0.0] - 2025-09-20
+# Version History 
+## [2.0.0] - 2025-09-20 
 ### Added
 - New Cython integration for faster window deployment:
-  - `quick_window_deployment_cython.c`
-  - `quick_window_deployment_cython.pyx`
-  - `quick_window_deployment_cython.cp313-win_amd64.pyd`
-  - `setup_quick_window.py`, `build_cython.py`, `compile_direct.py`
+- quick_window_deployment_cython.c
+- quick_window_deployment_cython.pyx 
+- quick_window_deployment_cython.cp313-win_amd64.pyd
+- setup_quick_window.py, build_cython.py, compile_direct.py
 - New UI components:
-  - `CustomTitleBar.py` for customizable title bar
-  - `Debugger.py` for in-app debugging
-- Autocomplete improvements:
-  - `autcompleter.py`, `smart_autocomplete.py`
-  - `autocomplete_history.db` (stores autocomplete history)
-
+- CustomTitleBar.py for customizable title bar
+- Debugger.py for in-application debugging
+- autcompleter.py, smart_autocomplete.py
+- autocomplete_history.db (private autocomplete history database)
 ### Fixed
-- Autocomplete not being activated
-- General bug fixes
-
+- Autocomplete not triggered
+- Various additional issues
 ### Changed
-- First version using new `.C` language file format
-
----
-
-## [1.8.8] - 2025-09-17
+- First version utilizing new “.C” language file type framework
+## [1.8.8] - 2025-09-17 
 ### Fixed
-- App not activating due to missing `typeScript_highlight.py`
-- Logic engine call errors (`logicAI.lua` and `language_engine.cc` → required `.dll`)
-- Dark mode issues (`Dark_mode.py`)
-
+- Empty activation due to typeScript_highlight.py missing
+- Direct internal calls logic engine ( logicAI.lua , language_engine.cc → requires .dll )
+- Dark_mode.py issues
 ### Changed
-- Renamed:
-  - `logicAI.lua` → `logicAI.py`
-  - `language_engine.cc` → `language_engine.py`
-- Improved interface for a more professional look
-- Updated `run.bat` for easier activation
-
+- Changed the name of:
+- logicAI.lua → logicAI.py
+- language_engine.cc  → language_engine.py
+- run.bat
+- dash → “advert” to modify toggle → “easier” for more straightforward activation
 ### Added
 - Splash/loading screen
-- Sun mode (`Sun_mode.py`)
-- Expanded language support (15+ languages, number approximate)
+- Sun mode (Sun_mode.py)
+- 15+ expanded language support (number estimated)
