@@ -1,3 +1,22 @@
+# Version: 2.0.0 (9/20/2025)
+- Fix autocomplete not being activated
+- Fix Bug
+- This is the first time using the new language file.C
+
+``` Add file
+quick_window_deployment_cython.c New
+quick_window_deployment_cython.cp313-win_amd64.pyd New
+setup_quick_window.py New
+build_cython.py New
+compile_direct.py New
+quick_window_deployment_cython.pyx New
+autcompleter.py New
+smart_autocomplete.py New
+autocomplete_history.db New
+CustomTitleBar.py New
+Debugger.py New
+```
+
 # Version: 1.8.8 (9/17/2025)
 
 - fixed the app not activating error. about a typeScript_highlight.py error but it is not available
