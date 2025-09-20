@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPixmap, QPainter, QLinearGradient, QColor
 import os
 
 class LoadingScreen(QDialog):
-    def __init__(self, timeout=5000, image_path=None, img_width=80, img_height=80, image_size=(1920, 1080)):
+    def __init__(self, timeout=3500, image_path=None, img_width=80, img_height=80, image_size=(1920, 1080)):
         super().__init__()
         self.image_path = image_path
         self.original_pixmap = None
