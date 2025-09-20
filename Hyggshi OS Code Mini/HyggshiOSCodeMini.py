@@ -1,6 +1,9 @@
 import sys, os
 import glob
 import importlib.util 
+import tempfile
+import base64
+import json
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QFileDialog,
     QTabWidget, QWidget, QVBoxLayout, QLineEdit, QShortcut,
@@ -16,14 +19,10 @@ from PyQt5.Qsci import (
     QsciLexerLua, QsciScintilla, QsciScintillaBase,
     QsciLexerCSharp
 )
-from PyQt5.QtWidgets import QSlider, QHBoxLayout
-import subprocess
-import sys
-import os
-import tempfile
-import json
-import base64
-import webbrowser
+from PyQt5.QtWidgets import QSlider, QHBoxLayout, QLineEdit, QLabel, QPushButton, QWidget
+from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtGui import QIcon, QPixmap
+
 from module.ChatAI import ChatAIWidget
 from module.markdown_highlight import apply_markdown_highlight
 from module.Output_UI import OutputPanel
@@ -32,7 +31,6 @@ from module.Media.Videoview import VideoView
 from module.Media.Photoview import PhotoView
 from module.System.ShortcutManager import ShortcutManager
 from module.System.QsciLexer import get_lexer
-from module.System.Autocomplete import AutocompleteManager
 from module.System.Notification import show_notification
 from module.System.UI_UX import set_dark_theme
 from module.Custom_text_color.Swift_highlight import apply_swift_highlight
@@ -43,10 +41,17 @@ from module.Custom_text_color.Kotlin_highlight import apply_kotlin_highlight
 from module.Custom_text_color.Batch_highlight import apply_batch_highlight
 from module.Custom_text_color.Hsi_highlight import apply_hsi_highlight
 from module.System.loading import show_loading_then_main
+from module.Custom_text_color.Hsiext_highlight import apply_hsiext_highlight
 from module.System.check_update import check_and_update
 from module.System.Sun_mode import apply_sun_mode
 from module.System.Dark_mode import apply_dark_mode
 from module.System.auto_recovery_file import auto_save_file, auto_load_file, remove_recovery_file
+from module.System.Debugger import debug_log, debug_exception
+from module.System.Run.Run_Html import run_html_file
+from module.System.CustomTitleBar import CustomTitleBar
+from module.Window.compile_direct import compile_cython_module
+from module.System.autcompleter import setup_smart_autocomplete
+from module.System.smart_autocomplete import CodeAnalyzer
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
 # from PyQt5.QtWidgets import QTextEdit
@@ -58,9 +63,10 @@ from module.System.auto_recovery_file import auto_save_file, auto_load_file, rem
 #         self.append(text)
 
 try:
+    debug_log("Ứng dụng Hyggshi OS Code Mini đang khởi động...")
     pass  # Add the code you want to try here
 except Exception as e:
-    print(f"An error occurred: {e}")
+    debug_exception(e)
     from module.markdown_highlight import apply_markdown_highlight
 except ImportError:
     def apply_markdown_highlight(editor):
@@ -94,6 +100,8 @@ except ImportError:
         pass
     error_handler = None
 
+
+    # d
 try:
     from module.syntax_checker import (
         check_python_syntax,
@@ -153,6 +161,7 @@ class EditorTab(QWidget):
         ("Tự động chuyển chữ hoa khi lưu", UppercaseOnSaveExtension),
         # Thêm extension khác ở đây
     ]
+    
 
     def __init__(self, file_path=None):
         super().__init__()
@@ -206,6 +215,7 @@ class EditorTab(QWidget):
         # self.dock_output.setWidget(self.output_panel)
         # self.addDockWidget(Qt.BottomDockWidgetArea, self.dock_output)
         # self.dock_output.hide()  # Ẩn mặc định, chỉ hiện khi gọi
+        setup_smart_autocomplete(self.editor)
 
     def init_extensions(self):
         # Nạp extension mặc định
@@ -383,6 +393,8 @@ class EditorTab(QWidget):
             apply_swift_highlight(self.editor)
         elif lang == "hsi":
             apply_hsi_highlight(self.editor)
+        elif lang == "hsiext":
+            apply_hsiext_highlight(self.editor)
         elif lang == "C#":
             try:
                 self.editor.setLexer(QsciLexerCSharp())
@@ -970,6 +982,12 @@ class HyggshiOSCodeMini(QMainWindow):
         if os.path.exists(cpp_ext_path):
             self.extensions.append(CppExtension(cpp_ext_path))
 
+    def refresh_autocomplete(self):
+        from module.System.smart_autocomplete import refresh_autocomplete_analysis
+        tab = self.current_editor_tab()
+        if tab and hasattr(tab, 'editor'):
+         refresh_autocomplete_analysis(tab.editor)
+
     def setup_sidebar(self):
         self.dock = QDockWidget("Explorer", self)
         self.dock.setAllowedAreas(Qt.LeftDockWidgetArea)
@@ -1334,11 +1352,6 @@ class HyggshiOSCodeMini(QMainWindow):
         
         self.toolbar.addSeparator()
         
-        # AI Assistant
-        ai_action = QAction(f"🤖 {self._translate('ai')}", self)
-        ai_action.triggered.connect(self.toggle_ai_assistant)
-        self.toolbar.addAction(ai_action)
-        
         # Syntax Check
         syntax_action = QAction(f"✅ {self._translate('syntax')}", self)
         syntax_action.triggered.connect(self.check_current_syntax)
@@ -1397,7 +1410,7 @@ class HyggshiOSCodeMini(QMainWindow):
             "Erlang", "Elixir", "F#", "OCaml", "Pascal", "Fortran", "Assembly", 
             "VHDL", "Verilog", "Tcl", "VBScript", "AutoHotkey", "Ini", "TOML", 
             "Dockerfile", "Makefile", "CMake", "Gradle", "Nginx", "Apache", "Log",
-            "hsi",
+            "hsi","hsiext",
             "Text"
         ]
         for lang in default_langs:
@@ -1450,6 +1463,7 @@ class HyggshiOSCodeMini(QMainWindow):
             else f"🌍 {lang}" if lang == "Apache"
             else f"📜 {lang}" if lang == "Log"
             else f"👾 {lang}" if lang == "hsi"
+            else f"📄 {lang}" if lang == "hsiext"
             else f"📝 {lang}"
             )
             act.triggered.connect(lambda _, l=lang: self.set_language_for_current_tab(l))
@@ -1731,6 +1745,7 @@ class HyggshiOSCodeMini(QMainWindow):
             "Perl": {"extension": ".pl", "plugin": "builtin"},
             "Haskell": {"extension": ".hs", "plugin": "builtin"},
             "Clojure": {"extension": ".clj", "plugin": "builtin"},
+           
             "Erlang": {"extension": ".erl", "plugin": "builtin"},
             "Elixir": {"extension": ".ex", "plugin": "builtin"},
             "F#": {"extension": ".fs", "plugin": "builtin"},
@@ -1963,6 +1978,29 @@ class HyggshiOSCodeMini(QMainWindow):
         ext = os.path.splitext(getattr(tab, "file_path", "") or "")[1].lower()
         code = tab.editor.text()
 
+        if ext in [".bat", ".cmd", ".ps1", ".sh"]:
+            QMessageBox.information(self, "Run", "Chỉ hỗ trợ chạy file Python hoặc mở HTML trực tiếp.")
+            return
+        
+
+        # Các định dạng không hỗ trợ chạy
+        if ext in [".hsi", ".hsiext"]:
+            QMessageBox.information(self, "Run", "Không thể chạy file định dạng này.")
+            return
+        if not code.strip() and not tab.file_path:
+            QMessageBox.warning(self, "Run", "File hiện tại trống.")
+            return
+
+        # --- HTML RUN SUPPORT ---
+        if ext in [".html", ".htm"]:
+            if tab.file_path and os.path.isfile(tab.file_path):
+                run_html_file(tab.file_path)
+                self.output_panel.append_text(f"[Run HTML] Đã mở: {tab.file_path}\n")
+                self.dock_output.show()
+            else:
+                QMessageBox.warning(self, "Run", "File HTML chưa được lưu. Vui lòng lưu file trước khi chạy.")
+            return
+
         if ext == ".py" or not tab.file_path:
             try:
                 if tab.file_path and ext == ".py":
@@ -1984,7 +2022,7 @@ class HyggshiOSCodeMini(QMainWindow):
                 self.output_panel.append_text(f"Lỗi khi chạy file: {e}")
                 self.dock_output.show()
         else:
-            QMessageBox.information(self, "Run", "Chỉ hỗ trợ chạy file Python trực tiếp.")
+            QMessageBox.information(self, "Run", "Chỉ hỗ trợ chạy file Python hoặc mở HTML trực tiếp.")
 
     def on_run_finished(self, output, run_path, is_temp):
         self.output_panel.append_text(output)
@@ -2384,7 +2422,7 @@ class HyggshiOSCodeMini(QMainWindow):
         icons_dir = os.path.join(os.path.dirname(__file__), 'icons')
         os.makedirs(icons_dir, exist_ok=True)
         # Default URL points to a lightweight icon pack (user can override)
-        default_url = 'https://github.com/PKief/vscode-material-icon-theme/raw/main/icons.zip'
+        default_url = 'https://github.com/material-extensions/vscode-material-icon-theme/tree/main/icons'
         download_url = url or default_url
         try:
             with urllib.request.urlopen(download_url) as resp:
@@ -2415,6 +2453,7 @@ class HyggshiOSCodeMini(QMainWindow):
                 pass
         else:
             QMessageBox.critical(self, 'Icons', f'Failed to download icons: {msg}')
+    
     def add_plugin_menu_items(self):
         """Add plugin menu items to the menu bar"""
         try:
@@ -2499,12 +2538,108 @@ class HyggshiOSCodeMini(QMainWindow):
             "print", "self", "True", "False", "None", "with", "as", "try", "except", "finally",
             "break", "continue", "pass", "yield", "lambda", "global", "nonlocal", "assert", "raise"
         ]
-        self.autocomplete_manager = AutocompleteManager(self.editor, api_words=keywords)
+
+if __name__ == "__main__":
 
     # Ví dụ sử dụng trong HyggshiOSCodeMini.py:
     def on_update_finished(self):
         show_notification("Cập nhật", "Đã kiểm tra và cập nhật xong từ Github!")
 
+class CustomTitleBar(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedHeight(36)
+        self.setStyleSheet("""
+            background: #1e1e1e;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        """)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(8, 0, 8, 0)
+        layout.setSpacing(8)
+
+        # App icon
+        icon_label = QLabel()
+        icon_pix = QPixmap("icon.ico").scaled(24, 24, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        icon_label.setPixmap(icon_pix)
+        layout.addWidget(icon_label)
+
+        # App name
+        name_label = QLabel("Hyggshi OS Code Mini")
+        name_label.setStyleSheet("color: #fff; font-weight: bold; font-size: 15px;")
+        layout.addWidget(name_label)
+
+        # Search box
+        search = QLineEdit()
+        search.setPlaceholderText("Search...")
+        search.setFixedWidth(260)
+        search.setStyleSheet("""
+            background: #252526; color: #fff; border: none; border-radius: 5px; padding: 4px 10px;
+        """)
+        layout.addWidget(search)
+
+        layout.addStretch()
+
+        # Window control buttons
+        for icon, slot, tooltip in [
+            ("minimize", self.parent().showMinimized, "Minimize"),
+            ("maximize", self.toggle_max_restore, "Maximize/Restore"),
+            ("close", self.parent().close, "Close"),
+        ]:
+            btn = QPushButton()
+            btn.setFixedSize(28, 28)
+            btn.setStyleSheet("""
+                QPushButton { background: transparent; border: none; }
+                QPushButton:hover { background: #333; }
+            """)
+            if icon == "minimize":
+                btn.setText("–")
+            elif icon == "maximize":
+                btn.setText("❐")
+            else:
+                btn.setText("✕")
+                btn.setStyleSheet("""
+                    QPushButton { background: transparent; border: none; color: #f55; }
+                    QPushButton:hover { background: #c00; color: #fff; }
+                """)
+            btn.setToolTip(tooltip)
+            btn.clicked.connect(slot)
+            layout.addWidget(btn)
+
+    def toggle_max_restore(self):
+        if self.parent().isMaximized():
+            self.parent().showNormal()
+        else:
+            self.parent().showMaximized()
+
+def build_cython_module():
+    """Build the Cython module using the compile_direct.py script"""
+    import subprocess
+    import sys
+    import os
+    from pathlib import Path
+
+    script_path = Path(__file__).parent / "module" / "Window" / "compile_direct.py"
+    
+    if not script_path.exists():
+        print(f"❌ Error: {script_path} not found!")
+        return False
+    
+    try:
+        result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True, cwd=script_path.parent)
+        if result.returncode == 0:
+            print("✅ Build successful!")
+            print(result.stdout)
+            return True
+        else:
+            print("❌ Build failed!")
+            print("STDOUT:", result.stdout)
+            print("STDERR:", result.stderr)
+            return False
+    except Exception as e:
+        print(f"❌ Error during build: {e}")
+        return False
+    
 def new_func(app):
     set_dark_theme()
     app.setFont(QFont("Consolas", 12))
@@ -2515,6 +2650,7 @@ if __name__ == "__main__":
 
     # Create QApplication instance
     app = QApplication(sys.argv)
+    
 
     # Set dark theme and font before showing any windows
     new_func(app)

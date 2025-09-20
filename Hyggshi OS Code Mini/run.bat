@@ -24,6 +24,7 @@ call :check_install keyring
 call :check_install pillow
 call :check_install markdown
 call :check_install pygments
+call :check_install cython
 
 REM Run the application
 python HyggshiOSCodeMini.py
