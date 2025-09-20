@@ -1,6 +1,7 @@
 # Hyggshi-OS-Code-Mini
 
 [![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python)](https://www.python.org/)  
+[![Made with C](https://img.shields.io/badge/Made%20with-C-blue?logo=C)]([https://en.wikipedia.org/wiki/C_(programming_language)])  
 [![Apache License 2.0](https://img.shields.io/badge/Apache-License-green.svg)](LICENSE)  
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/)  
 
