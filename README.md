@@ -80,6 +80,10 @@ Hyggshi OS Code Mini/
 * `smart_autocomplete.py`, `autcompleter.py`
 ![autocomplete](https://github.com/user-attachments/assets/c6fde047-0622-47ef-9c0a-5dc890cdc133)
 
+* `context_ui.py`
+![context_ui](https://github.com/user-attachments/assets/503eb678-8e46-4d4c-ade2-ee4ac3abe0f5)
+
+
 ---
 
 ## 📌 Roadmap
