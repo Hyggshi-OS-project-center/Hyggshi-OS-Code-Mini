@@ -34,8 +34,15 @@ A mini IDE developed by **Hyggshi-OS Project Center**, focusing on being lightwe
 * `HyggshiOSCodeMini.py`: the main application.
 
 ---
+## configuration requirements
 
-## ⚙️ How to install & run
+| empty hard drive | encourage (hard drive)     | RAM          | encourage (RAM) |
+| -----------------| -------------------------- | ------------ | ----------------|
+|512 MB            |1 GB or 2 GB                | 256 MB       | 512 MB or 1 GB  |
+
+---
+
+## How to install & run
 
 ### 1. Clone the project to your computer
 
