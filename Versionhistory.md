@@ -1,4 +1,11 @@
-# Version History 
+# Version History
+
+## [2.3.0] - 2025-09-26
+### Added
+- Output_UI.py New upgraded new interface
+### Fixed
+- AttributeError: 'CompactOutputPanel' object has no attribute 'clear' on Output_UI.py
+---
 ## [2.0.0] - 2025-09-20 
 ### Added
 - New Cython integration for faster window deployment:
@@ -16,6 +23,7 @@
 - Various additional issues
 ### Changed
 - First version utilizing new “.C” language file type framework
+---
 ## [1.8.8] - 2025-09-17 
 ### Fixed
 - Empty activation due to typeScript_highlight.py missing
