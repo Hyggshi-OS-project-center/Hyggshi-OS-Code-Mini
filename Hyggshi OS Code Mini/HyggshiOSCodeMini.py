@@ -52,6 +52,7 @@ from module.System.CustomTitleBar import CustomTitleBar
 from module.Window.compile_direct import compile_cython_module
 from module.System.autcompleter import setup_smart_autocomplete
 from module.System.smart_autocomplete import CodeAnalyzer
+from module.System.welcome_widget import WelcomeWidget
 
 # Dummy OutputPanel definition (replace with your actual implementation or import)
 # from PyQt5.QtWidgets import QTextEdit
@@ -735,7 +736,7 @@ class CustomIconProvider(QFileIconProvider):
                         os.path.dirname(__file__),
                         self.folder_type_temp
                     )
-                elif any(name == 'vscode' or name == '.vscode' for name in os.listdir(folder_path)):
+                elif has_vscode:
                     icon_path = os.path.join(
                         os.path.dirname(__file__),
                         self.folder_type_vscode
@@ -798,7 +799,7 @@ class HyggshiOSCodeMini(QMainWindow):
         self._translate = lambda k, **kw: k
         self.setWindowTitle("Hyggshi OS Code Mini")
         self.setWindowIcon(QIcon("icon.png"))  # Ensure you have an icon file named 'icon.png'
-        self.resize(1200, 800)
+        self.resize(1366, 768)
 
         # Initialize theme system
         self.current_theme = "dark"  # Default to dark theme
@@ -967,6 +968,8 @@ class HyggshiOSCodeMini(QMainWindow):
         # Giả sử self.editor là widget soạn thảo văn bản
         self.editor = QsciScintilla()
         self.setup_editor_context(self.editor)
+        # Initialize welcome_widget before any tab logic
+        self.welcome_widget = WelcomeWidget(self)
         self.new_file()  # Mở tab mới khi khởi động
         self.setCentralWidget(self.main_splitter)
         self.auto_save_timer = QTimer()
@@ -1642,6 +1645,7 @@ class HyggshiOSCodeMini(QMainWindow):
                 pass
         self.tabs.addTab(tab, icon, title)
         self.tabs.setCurrentWidget(tab)
+        self._show_welcome_if_needed()  # Đảm bảo welcome ẩn khi có tab mới
 
     # def close_tab(self, index):
     #     self.tabs.removeTab(index)
@@ -1676,6 +1680,7 @@ class HyggshiOSCodeMini(QMainWindow):
             if not check_unsaved_and_prompt(tab, self):
                 return
         self.tabs.removeTab(index)
+        self._show_welcome_if_needed()  # Đảm bảo welcome hiển thị khi đóng hết tab
 
     def closeEvent(self, event):
         for i in range(self.tabs.count() - 1, -1, -1):
@@ -1745,7 +1750,6 @@ class HyggshiOSCodeMini(QMainWindow):
             "Perl": {"extension": ".pl", "plugin": "builtin"},
             "Haskell": {"extension": ".hs", "plugin": "builtin"},
             "Clojure": {"extension": ".clj", "plugin": "builtin"},
-           
             "Erlang": {"extension": ".erl", "plugin": "builtin"},
             "Elixir": {"extension": ".ex", "plugin": "builtin"},
             "F#": {"extension": ".fs", "plugin": "builtin"},
@@ -1769,6 +1773,8 @@ class HyggshiOSCodeMini(QMainWindow):
             "Nginx": {"extension": ".conf", "plugin": "builtin"},
             "Apache": {"extension": ".htaccess", "plugin": "builtin"},
             "Log": {"extension": ".log", "plugin": "builtin"},
+            "hsi": {"extension": ".hsi", "plugin": "builtin"},
+            "hsiext": {"extension": ".hsiext", "plugin": "builtin"},
             "Text": {"extension": ".txt", "plugin": "builtin"}
         }
         
@@ -2539,6 +2545,20 @@ class HyggshiOSCodeMini(QMainWindow):
             "break", "continue", "pass", "yield", "lambda", "global", "nonlocal", "assert", "raise"
         ]
 
+    def _show_welcome_if_needed(self, idx=None):
+        # Nếu không có tab nào, hiển thị WelcomeWidget
+        if self.tabs.count() == 0:
+            self.tabs.addTab(self.welcome_widget, "")
+            self.tabs.setTabEnabled(0, False)
+        else:
+            # Ẩn WelcomeWidget nếu có tab khác
+            for i in range(self.tabs.count()):
+                if self.tabs.widget(i) is self.welcome_widget:
+                    self.tabs.removeTab(i)
+                    break
+        # Removed recursive call to prevent infinite recursion
+
+
 if __name__ == "__main__":
 
     # Ví dụ sử dụng trong HyggshiOSCodeMini.py:
@@ -2618,7 +2638,6 @@ def build_cython_module():
     import sys
     import os
     from pathlib import Path
-
     script_path = Path(__file__).parent / "module" / "Window" / "compile_direct.py"
     
     if not script_path.exists():
