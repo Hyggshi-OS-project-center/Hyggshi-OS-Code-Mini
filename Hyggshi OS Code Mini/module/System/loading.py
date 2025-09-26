@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPixmap, QPainter, QLinearGradient, QColor
 import os
 
 class LoadingScreen(QDialog):
-    def __init__(self, timeout=3500, image_path=None, img_width=80, img_height=80, image_size=(1920, 1080)):
+    def __init__(self, timeout=1999, image_path=None, img_width=80, img_height=80, image_size=(1920, 1080)):
         super().__init__()
         self.image_path = image_path
         self.original_pixmap = None
@@ -177,12 +177,16 @@ if __name__ == "__main__":
             central_widget.setAlignment(Qt.AlignCenter)
             self.setCentralWidget(central_widget)
 
-    # Example usage with custom screen size
-    show_loading_then_main(
-        MainWindow,
-        image_path="Resources/Image.png",
-        img_width=1090,
-        img_height=615,
-        image_size=(1090, 615),  # Custom loading screen size
-        print_info=True
-    )
+    try:
+        show_loading_then_main(
+            MainWindow,
+            image_path="Resources/Image.png", 
+            img_width=1090, 
+            img_height=615,
+            image_size=(1090, 615),
+            print_info=True
+        )
+    except Exception as e:
+        import traceback
+        print("LỖI khi khởi tạo cửa sổ:", e)
+        traceback.print_exc()
