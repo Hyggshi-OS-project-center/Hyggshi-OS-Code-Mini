@@ -1,7 +1,7 @@
 # Hyggshi-OS-Code-Mini
 
 [![Made with Python](https://img.shields.io/badge/Made%20with-Python-FFD43B?logo=python&logoColor=white)](https://www.python.org/)  
-[![Made with C](https://img.shields.io/badge/Made%20with-C-00599C?logo=c&logoColor=white)](https://en.wikipedia.org/wiki/C_(programming_language))  
+[![Made with C](https://img.shields.io/badge/Made%20with-C-00599C?logo=c&logoColor=white)](https://www.c-language.org/)  
 [![Made with Lua](https://img.shields.io/badge/Made%20with-Lua-2C2D72?logo=lua&logoColor=white)](https://www.lua.org/)  
 [![Apache License 2.0](https://img.shields.io/badge/Apache-License-green.svg)](LICENSE)  
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/)  
