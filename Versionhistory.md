@@ -1,5 +1,12 @@
 # Version History
 
+## [2.6.9] - 2025-11-7
+### Added
+- Git
+- There are many other things
+### Fixed
+- fix output crash
+
 ## [2.3.0] - 2025-09-26
 ### Added
 - Output_UI.py New upgraded new interface
