@@ -5,6 +5,7 @@
 [![Made with Lua](https://img.shields.io/badge/Made%20with-Lua-2C2D72?logo=lua&logoColor=white)](https://www.lua.org/)  
 [![Apache License 2.0](https://img.shields.io/badge/Apache-License-green.svg)](LICENSE)  
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/)  
+[![GitHub All Releases](https://img.shields.io/github/downloads/Hyggshi-OS-project-center/Hyggshi-OS-Code-Mini/total.svg)](https://github.com/Hyggshi-OS-project-center/Hyggshi-OS-Code-Mini/releases) 
 
 
 A mini IDE developed by **Hyggshi-OS Project Center**, focusing on being lightweight but still has many features to support programming and multimedia.
