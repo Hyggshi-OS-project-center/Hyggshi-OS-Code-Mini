@@ -10,7 +10,7 @@
 
 A mini IDE developed by **Hyggshi-OS Project Center**, focusing on being lightweight but still has many features to support programming and multimedia.
 
-## 🚀 Main features
+## Main features
 
 * **Code editor**:
 
@@ -61,7 +61,7 @@ cd "Hyggshi OS Code Mini"
 
 ---
 
-## 📂 Directory Structure
+## Directory Structure
 
 ```
 Hyggshi OS Code Mini/
@@ -72,7 +72,7 @@ Hyggshi OS Code Mini/
 
 ---
 
-## 🖼️ Illustration
+## Illustration
 
 * `loading.py`
 ![loading](https://github.com/user-attachments/assets/50e176d3-9913-49f9-b1d3-1cc4bdb4a0f0)
@@ -95,7 +95,7 @@ Hyggshi OS Code Mini/
 
 ---
 
-## 📌 Roadmap
+## Roadmap
 
 * [ ] Integrate file management sidebar.
 * [ ] Support more programming languages.
@@ -104,7 +104,7 @@ Hyggshi OS Code Mini/
 
 ---
 
-## 🤝 Contribute
+## Contribute
 
 If you want to contribute:
 
